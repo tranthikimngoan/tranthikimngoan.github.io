@@ -43,15 +43,24 @@ $(function() {
   // --------------------------------------------- //
   // Loader & Loading Animation Start
   // --------------------------------------------- //
-  const content = document.querySelector('body');
-  const imgLoad = imagesLoaded(content);
+  const content = document.querySelector("body");
+  const loader = document.getElementById("loader");
+  const loaderContent = document.getElementById("loaderContent");
+  let loaderFinished = false;
 
-  imgLoad.on('done', instance => {
-
-    document.getElementById("loaderContent").classList.add("fade-out");
-    setTimeout(() => {
-      document.getElementById("loader").classList.add("loaded");
-    }, 300);
+  const finishLoading = () => {
+    if (loaderFinished) {
+      return;
+    }
+    loaderFinished = true;
+    if (loaderContent) {
+      loaderContent.classList.add("fade-out");
+    }
+    if (loader) {
+      setTimeout(() => {
+        loader.classList.add("loaded");
+      }, 300);
+    }
 
     gsap.set(".animate-headline", {y: 50, opacity: 0});
     ScrollTrigger.batch(".animate-headline", {
@@ -59,18 +68,27 @@ $(function() {
       batchMax: 4,
       duration: 6,
       onEnter: batch => gsap.to(batch, {
-        opacity: 1, 
+        opacity: 1,
         y: 0,
-        ease: 'sine',
-        stagger: {each: 0.15, grid: [1, 4]}, 
+        ease: "sine",
+        stagger: {each: 0.15, grid: [1, 4]},
         overwrite: true
       }),
       onLeave: batch => gsap.set(batch, {opacity: 1, y: 0, overwrite: true}),
       onEnterBack: batch => gsap.to(batch, {opacity: 1, y: 0, stagger: 0.15, overwrite: true}),
       onLeaveBack: batch => gsap.set(batch, {opacity: 0, y: 50, overwrite: true})
     });
+  };
 
-  });
+  if (typeof imagesLoaded === "function") {
+    const imgLoad = imagesLoaded(content);
+    imgLoad.on("always", finishLoading);
+  } else {
+    window.addEventListener("load", finishLoading, {once: true});
+  }
+
+  // Fallback so the loader never blocks forever.
+  setTimeout(finishLoading, 4000);
   // --------------------------------------------- //
   // Loader & Loading Animation End
   // --------------------------------------------- //
